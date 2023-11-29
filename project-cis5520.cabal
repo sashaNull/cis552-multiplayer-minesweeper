@@ -1,0 +1,73 @@
+cabal-version:  2.2
+name:           project-cis5520
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/project-cis5520#readme>
+homepage:       https://github.com/githubuser/project-cis5520#readme
+bug-reports:    https://github.com/githubuser/project-cis5520/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2022 Author name here
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/project-cis5520
+
+common common-stanza
+  ghc-options:         -Wno-type-defaults -fwarn-incomplete-patterns
+  build-depends:
+      base >=4.15
+    , HUnit 
+    , QuickCheck
+    , containers
+    , filepath
+    , pretty
+    , network
+    , directory
+    , random
+    , mtl
+  default-language:
+    GHC2021
+  default-extensions:
+
+
+library
+  import:
+      common-stanza
+  exposed-modules:
+      Lib
+      -- if you add modules to your project, list them here
+      -- so that they will be available to the executable and test suite
+  hs-source-dirs:
+      src
+
+executable project-cis5520-exe
+  import:
+      common-stanza
+  main-is: 
+      Main.hs
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      project-cis5520
+
+
+test-suite project-cis5520-test
+  import:
+      common-stanza
+  type: 
+      exitcode-stdio-1.0
+  main-is: 
+      Spec.hs
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      project-cis5520
+
