@@ -1,0 +1,26 @@
+1. What modules will comprise your project?
+
+Logic.hs: Contains all the game logic and parsing functions
+
+Game.hs: Contains the main game loops
+
+Main.hs: Sets up the networking for two-player
+
+Parser and ParserCombinators??
+
+4.
+
+Tests.hs: Contains unit and QuickCheck tests for individual game logic functions
+
+MUST HAVE SinglePlayer Mode (game loops for Single Player):
+
+TestClient.hs: A client that will connect to a server and automatically play the game, printing the game state to the console as well as running validation tests after every turn
+
+
+0.https://vinuni-hacking-club-1337.notion.site/Capture-the-Mine-Game-Manual-51bfeb05a430440c97184553af0016ba?pvs=4
+
+1. No concurrency
+
+2. Terminal
+
+3. Network library, both act as client and server, connect through IP?
