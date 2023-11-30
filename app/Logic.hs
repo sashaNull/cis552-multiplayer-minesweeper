@@ -5,8 +5,8 @@ import Data.Maybe (isJust)
 import Debug.Trace
 import System.IO
 import System.Random
-import Test.HUnit
-import Test.QuickCheck
+-- import Test.HUnit
+-- import Test.QuickCheck
 
 -----------------------------
 -- type definitions (model)
@@ -66,7 +66,7 @@ genLocs w h n g =
   zip (take n (randomRs (0, w - 1) g)) (drop n $ take (n * 2) $ randomRs (0, h - 1) g)
 
 {-This function places generated locations of mines into an empty board-}
-genBoard :: Int -> Int -> Int -> [Locations] -> Board
+genBoard :: Int -> Int -> Int -> [Location] -> Board
 genBoard w h n = foldr helper (matrixMaker w h (Clue 0))
   where
     -- This function places the Mines into the empty board
