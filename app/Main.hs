@@ -1,129 +1,154 @@
-module Main where
-
-import Control.Monad.State
+import Control.Monad
+import Data.List
 import Data.Map qualified as M
 import Data.Maybe (isJust)
+import Debug.Trace
+import System.IO
+import System.Random
 import Test.HUnit
 import Test.QuickCheck
 
 -----------------------------
 -- type definitions (model)
 -----------------------------
-data Player = X | O deriving (Eq, Show)
+data State a = Mine | Unexplored | Clue a deriving (Show)
 
-data Location = Loc Int Int deriving (Eq, Ord, Show)
+type Location = (Int, Int)
 
-type Board = M.Map Location Player
+type Board = [[State Int]]
 
-data Game = Game {board :: Board, current :: Player} deriving (Eq, Show)
+type ClueMatrix = [[Int]]
 
-data End = Win Player | Tie deriving (Eq, Show)
+type Explored = [[State Int]]
 
--- | starting board for the game
-initialGame :: Game
-initialGame = undefined
+size = 2 -- the size of each cell
 
--- | is the board still playable
-checkEnd :: Board -> Maybe End
-checkEnd = undefined
+width = 50 -- the width of the board
 
--- | is this location a valid move for the player
-valid :: Board -> Location -> Bool
-valid = undefined
+height = 50 -- the height of the board
 
--- | make a move at a particular location
-makeMove :: Game -> Location -> Maybe Game
-makeMove = undefined
+{- This function handles the situation where the player wants to explore a
+location. -}
+explore :: Board -> Location -> Explored -> Explored
+explore b l@(x, y) e = case e !! x !! y of
+  Unexplored -> updateExplored b l e -- Explore if it was not explored
+  _ -> e -- don't do anything otherwise
 
--- | display the current game board
-showBoard :: Board -> String
-showBoard = undefined
+{-This function will take in the initial board, a location
+where we want to explore. and an explored map to return a new
+explored map with the updated explored map-}
+updateExplored :: Board -> Location -> Explored -> Explored
+updateExplored b l@(x, y) e =
+  case state of
+    -- If the state of the location is Clue 0, the map will explore all adjacent
+    -- locations
+    Clue 0 -> foldr (explore b) newExplored $ surrounding width height l
+    _ -> newExplored
+  where
+    state = b !! x !! y
+    newExplored = replaceMatrixIndex l e state
 
--- | Create a type class for the interface for the main game interface
--- so that it can be tested
-class Monad m => Interface m where
-  -- ask the current player for their next move
-  getMove :: Game -> m Location
+{-This function will take in an explored map and check if mines are visible-}
+isVisibleMine :: Explored -> Bool
+isVisibleMine x = case x of
+  [] -> False
+  x : xs -> helper x || isVisibleMine xs
+  where
+    -- This helper function return True if it is a Mine
+    helper x = not $ all aux xs
+    -- aux return false if it is a Mine
+    aux Mine = False
+    aux _ = True
 
-  -- send a message to all players
-  message :: String -> m ()
+{-This function randomly generates n points to have mines within the board-}
+genLocs :: (RandomGen g) => Int -> Int -> Int -> g -> [Location]
+genLocs w h n g =
+  zip (take n (randomRs (0, w - 1) g)) (drop n $ take (n * 2) $ randomRs (0, h - 1) g)
 
-  -- send a message to the indicated player
-  playerMessage :: Player -> String -> m ()
+{-This function places generated locations of mines into an empty board-}
+genBoard :: Int -> Int -> Int -> [Locations] -> Board
+genBoard w h n = foldr helper (matrixMaker w h (Clue 0))
+  where
+    -- This function places the Mines into the empty board
+    helper p b = replaceMatrixIndex p b Mine
 
--- | all valid locations
-locations :: [Location]
-locations = [Loc x y | x <- [1 .. 3], y <- [1 .. 3]]
+{-This function generates of clueMatrix-}
+genClueMatrix :: Int -> Int -> [Location] -> ClueMatrix
+genClueMatrix w h mines = foldr succPoint clueMatrix surroundingPoints
+  where
+    surroundingPoints = concatMap (surrounding w h) mines
+    clueMatrix = replicate w $ replicate h 0
+    succPoint p@(x, y) clueMatrix =
+      replaceMatrixIndex p clueMatrix $
+        succ (clueMatrix !! x !! y)
+
+{-This function returns the all the surrounding location of a location-}
+surrounding :: Int -> Int -> Location -> [Location]
+surrounding w h (x, y) =
+  filter
+    (inBounds w h)
+    [ (x - 1, y + 1),
+      (x, y + 1),
+      (x + 1, y + 1),
+      (x - 1, y),
+      (x + 1, y),
+      (x - 1, y - 1),
+      (x, y - 1),
+      (x + 1, y - 1)
+    ]
+
+-- This function check if a location is in the bounds provided
+inBounds :: Int -> Int -> Location -> Bool
+inBounds w h (x, y)
+  | x < 0 = False
+  | x >= w = False
+  | y < 0 = False
+  | y >= h = False
+  | otherwise = True
+
+-- This helper function makes a list of list of a particular element
+-- with the expected size
+matrixMaker :: Int -> Int -> a -> [[a]]
+matrixMaker w h e = replicate w $ replicate h e
+
+-- This helper function replace a Location's element with another element
+replaceMatrixIndex :: Location -> [[a]] -> a -> [[a]]
+replaceMatrixIndex (x, y) m e = replaceIndex x m $ replaceIndex y (m !! x) e
+  where
+    replaceIndex index xs x = take index xs ++ (x : drop (index + 1) xs)
+
+genGame :: (RandomGen g) => Int -> Int -> Int -> g -> Board
+genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
+  where
+    mines = nub $ genLocs w h n g
+    clueMatrix = genClueMatrix w h mines
+    mineMap = genBoard w h n mines
+    combine :: State a -> a -> State a
+    combine Mine _ = Mine
+    combine Unexplored _ = Unexplored
+    combine (Clue _) x = Clue x
 
 -- | make moves until someone wins
-playGame :: Interface m => Game -> m ()
-playGame game = do
-  playerMessage (current game) $ showBoard (board game)
-  case checkEnd $ board game of
-    Just (Win p) -> message $ "Player " ++ show p ++ " wins!"
-    Just Tie -> message "It's a Tie!"
-    Nothing -> do
-      playerMessage (current game) "It's your turn"
-      move <- getMove game
-      case makeMove game move of
-        Just game' -> playGame game'
-        Nothing -> error "BUG: move is invalid!"
-
-instance Interface IO where
-  getMove = undefined
-  playerMessage = undefined
-  message = undefined
+playGame :: Explored -> Board -> IO Explored
+playGame e b = do
+  showBoard e
+  input <- getLine
+  let new = explore b (parser input) e
+   in if isVisibleMine new then return new else playGame new w
+  where
+    -- This helper function helps parse the input of the players into a Location
+    parser :: String -> Location
+    parser str = helper $ map read $ words str
+      where
+        helper (x : y : _) = (x, y)
 
 main :: IO ()
-main = playGame initialGame
+main = do
+  g <- getStdGen
+  explored <- matrixMaker width height Unexplored
+  board <- genGame width height (width * height `div` 10) g
+  playGame explored board >>= showBoard
 
 -----------------------------
 -- Test Cases
 -----------------------------
-
--- Helper function to make writing test cases easier.
--- declared, but not yet implemented
-makeBoard :: [[Maybe Player]] -> Board
-makeBoard = undefined
-
--- unit tests for the end game
--- clear from reading this code what is being tested and what it
--- depends on
-testCheckEnd :: Test
-testCheckEnd =
-  TestList
-    [ "Win for X" ~: checkEnd winBoard ~?= Just (Win X),
-      "Initial is playable" ~: checkEnd (board initialGame) ~?= Nothing,
-      "Tie game" ~: checkEnd tieBoard ~?= Just Tie
-    ]
-  where
-    winBoard =
-      makeBoard
-        [ [Just X, Just X, Just X],
-          [Nothing, Just O, Nothing],
-          [Nothing, Just O, Nothing]
-        ]
-    tieBoard =
-      makeBoard
-        [ [Just X, Just O, Just X],
-          [Just O, Just X, Just O],
-          [Just O, Just X, Just X]
-        ]
-
--- a quickcheck property about validity
-prop_validMove :: Game -> Location -> Bool
-prop_validMove game move =
-  isJust (makeMove game move) == valid (board game) move
-
--- Arbitrary instances. These don't need to be complete yet,
--- but you should think about what types you will need to be able
--- to generate random values for.
-instance Arbitrary Game where
-  arbitrary = Game <$> arbitrary <*> arbitrary
-
-instance Arbitrary Player where
-  arbitrary = elements [X, O]
-
-instance Arbitrary Location where
-  arbitrary = elements locations
-
