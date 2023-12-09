@@ -1,5 +1,6 @@
 module Helpers where
 
+import Data.List
 import Test.HUnit
   ( Assertion,
     Test (TestList),
