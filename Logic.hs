@@ -8,8 +8,6 @@ import Debug.Trace ()
 import Helpers
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen)
-import Text.Regex.TDFA
-
 
 ------------------- Definitions (Game State) -------------------
 
