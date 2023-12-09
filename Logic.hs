@@ -1,6 +1,6 @@
 module Logic where
 
-import Control.Monad ()
+import Control.Monad
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
 import Data.Maybe (isJust)
@@ -24,11 +24,23 @@ type ClueMatrix = [[Int]]
 
 type Explored = [[State Int]]
 
+data Player = Player1 | Player2
+
+data GameState = GS {
+  player :: Player,
+  score1 :: Int,
+  score2 :: Int
+}
+
 size = 2 -- the size of each cell
 
 width = 20 -- the width of the board
 
 height = 20 -- the height of the board
+
+
+
+--------------------------------- Board Exploration ------------------------------
 
 {-This function handles the situation where the player wants to explore a
 location.-}
@@ -52,16 +64,16 @@ updateExplored b l@(x, y) e =
     newExplored = replaceMatrixIndex l e state
 
 {-This function will take in an explored map and check if mines are visible-}
-isVisibleMine :: Explored -> Bool
-isVisibleMine x = case x of
-  [] -> False
-  x : xs -> helper x || isVisibleMine xs
+countVisibleMine :: Explored -> Int
+countVisibleMine x = case x of
+  [] -> 0
+  x : xs -> helper x + countVisibleMine xs
   where
-    -- This helper function return True if it is a Mine
-    helper x = not $ all aux x
-    -- aux return false if it is a Mine
-    aux Mine = False
-    aux _ = True
+    helper = foldr g 0
+    g Mine acc = acc + 1
+    g _ acc = acc
+
+------------------------ Generation of the Game -------------------------------
 
 {-This function randomly generates n points to have mines within the board-}
 genLocs :: (RandomGen g) => Int -> Int -> Int -> g -> [Location]
@@ -98,6 +110,11 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 
 -------------------------- Printing out the Board ----------------------------
 
+
+
+
+
+
 {-Prints out the world-}
 showBoard :: Board -> IO ()
 showBoard w = putStrLn $ showMatrixWith tile w
@@ -129,16 +146,10 @@ addBorder xs =
     h = length xs
     horizontal w = "+" ++ replicate w '-' ++ "+"
     vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "|" else show i ++ " |" ++ xs ++ "|"
-    horizontalCoordinate width n =
-      if n == width
-        then
-          if n < 10
-            then showCentered size (" " ++ show n ++ " ")
-            else showCentered size (show n ++ " ")
-        else
-          if n < 10
-            then showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
-            else showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
+    horizontalCoordinate width n
+        | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
+        | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
+        | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
 {-make moves until someone wins-}
 playGame :: Explored -> Board -> IO Explored
@@ -146,7 +157,11 @@ playGame e b = do
   showBoard e
   input <- getLine
   let new = explore b (parser input) e
-   in if isVisibleMine new then return new else playGame new b
+   in 
+    let oldcount = countVisibleMine e
+      in
+        let newcount = countVisibleMine new 
+          in if newcount > oldcount then return new else playGame new b
   where
     -- This helper function helps parse the input of the players into a Location
     parser :: String -> Location
