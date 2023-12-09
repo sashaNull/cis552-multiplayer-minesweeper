@@ -46,6 +46,10 @@ replaceMatrixIndex (x, y) m e = replaceIndex x m $ replaceIndex y (m !! x) e
   where
     replaceIndex index xs x = take index xs ++ (x : drop (index + 1) xs)
 
+{-Maps a function over a list of lists-}
+matrixMap :: (a -> b) -> [[a]] -> [[b]]
+matrixMap f = Data.List.map (Data.List.map f)
+
 ------------- Tests for Helper Functions ---------------
 
 tsurrounding :: Test

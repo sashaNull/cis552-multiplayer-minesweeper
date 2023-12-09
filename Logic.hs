@@ -114,10 +114,6 @@ showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
     leftPad = w `div` 2
     rightPad = w - leftPad - length x
 
-{-Maps a function over a list of lists-}
-matrixMap :: (a -> b) -> [[a]] -> [[b]]
-matrixMap f = Data.List.map (Data.List.map f)
-
 showMatrixWith :: (a -> String) -> [[a]] -> String
 showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
 
