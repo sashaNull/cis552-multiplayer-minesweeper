@@ -5,7 +5,7 @@ import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
 import Data.Maybe (isJust)
 import Debug.Trace ()
-import Helpers (matrixMaker, replaceMatrixIndex, surrounding)
+import Helpers
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen)
 
@@ -30,8 +30,8 @@ width = 20 -- the width of the board
 
 height = 20 -- the height of the board
 
-{- This function handles the situation where the player wants to explore a
-location. -}
+{-This function handles the situation where the player wants to explore a
+location.-}
 explore :: Board -> Location -> Explored -> Explored
 explore b l@(x, y) e = case e !! x !! y of
   Unexplored -> updateExplored b l e -- Explore if it was not explored
@@ -96,17 +96,17 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
     combine Unexplored _ = Unexplored
     combine (Clue _) x = Clue x
 
--------------------------- Printing out the World ----------------------------
+-------------------------- Printing out the Board ----------------------------
 
-{- Prints out the world -}
+{-Prints out the world-}
 showBoard :: Board -> IO ()
-showBoard w = putStrLn $ showMatrixWith square w
+showBoard w = putStrLn $ showMatrixWith tile w
 
-square :: State Int -> String
-square Mine = showCentered size "*"
-square Unexplored = showCentered size "#"
-square (Clue 0) = showCentered size " "
-square (Clue n) = showCentered size (show n)
+tile :: State Int -> String
+tile Mine = showCentered size " * "
+tile Unexplored = showCentered size " # "
+tile (Clue 0) = showCentered size "   "
+tile (Clue n) = showCentered size (" " ++ show n ++ " ")
 
 showCentered :: Int -> String -> String
 showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
@@ -114,26 +114,37 @@ showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
     leftPad = w `div` 2
     rightPad = w - leftPad - length x
 
-{- Maps a function over a list of lists -}
+{-Maps a function over a list of lists-}
 matrixMap :: (a -> b) -> [[a]] -> [[b]]
 matrixMap f = Data.List.map (Data.List.map f)
 
 showMatrixWith :: (a -> String) -> [[a]] -> String
 showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
 
-{- Adds a border around a list of strings -}
+{-Adds a border around a list of strings-}
 addBorder :: [String] -> [String]
 addBorder xs =
-  [horizontalBorder w]
-    ++ Data.List.map verticalBorder xs
-    ++ [horizontalBorder w]
+  ["   |" ++ horizontalCoordinate (width - 1) 0 ++ "|"]
+    ++ ["   " ++ horizontal w]
+    ++ zipWith vertical [0 ..] xs
+    ++ ["   " ++ horizontal w]
   where
     w = length (head xs)
     h = length xs
-    horizontalBorder w = "+" ++ replicate w '-' ++ "+"
-    verticalBorder xs = "|" ++ xs ++ "|"
+    horizontal w = "+" ++ replicate w '-' ++ "+"
+    vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "|" else show i ++ " |" ++ xs ++ "|"
+    horizontalCoordinate width n =
+      if n == width
+        then
+          if n < 10
+            then showCentered size (" " ++ show n ++ " ")
+            else showCentered size (show n ++ " ")
+        else
+          if n < 10
+            then showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
+            else showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
--- | make moves until someone wins
+{-make moves until someone wins-}
 playGame :: Explored -> Board -> IO Explored
 playGame e b = do
   showBoard e
@@ -151,8 +162,8 @@ main :: IO ()
 main = do
   g <- getStdGen
   let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
-  let world = genGame width height (width * height `div` 10) g
-  playGame explored world >>= showBoard
+  let board = genGame width height (width * height `div` 10) g
+  playGame explored board >>= showBoard
 
 -----------------------------
 -- Test Cases
