@@ -8,9 +8,8 @@ import Debug.Trace ()
 import Helpers
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen)
+import Text.Regex.TDFA
 
--- import Test.HUnit
--- import Test.QuickCheck
 
 ------------------- Definitions (Game State) -------------------
 
@@ -119,11 +118,36 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 showBoard :: Board -> IO ()
 showBoard w = putStrLn $ showMatrixWith tile w
 
+data Color = Black | Red | Green | Yellow | Blue | Magenta | Cyan | White | Purple | Grey | DarkRed
+
+coloredText :: Color -> String -> String
+coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
+
+colorCode :: Color -> Int
+colorCode Black = 0
+colorCode Red = 1
+colorCode Green = 2
+colorCode Yellow = 3
+colorCode Blue = 4
+colorCode Magenta = 5
+colorCode Cyan = 6
+colorCode White = 7
+colorCode Purple = 128  -- ANSI color code for purple
+colorCode Grey = 242    -- ANSI color code for grey
+colorCode DarkRed = 52  -- ANSI color code for dark red
+
 tile :: State Int -> String
-tile Mine = showCentered size " * "
+tile Mine = showCentered size (coloredText Red " * ")
 tile Unexplored = showCentered size " # "
 tile (Clue 0) = showCentered size "   "
-tile (Clue n) = showCentered size (" " ++ show n ++ " ")
+tile (Clue 1) = showCentered size (coloredText Blue " 1 ")
+tile (Clue 2) = showCentered size (coloredText Green " 2 ")
+tile (Clue 3) = showCentered size (coloredText Yellow " 3 ")
+tile (Clue 4) = showCentered size (coloredText Purple " 4 ")
+tile (Clue 5) = showCentered size (coloredText DarkRed " 5 ")
+tile (Clue 6) = showCentered size (coloredText Cyan " 6 ")
+tile (Clue 7) = showCentered size (coloredText Black " 7 ")
+tile (Clue 8) = showCentered size (coloredText Grey " 8 ")
 
 showCentered :: Int -> String -> String
 showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
@@ -144,7 +168,7 @@ addBorder xs =
   where
     w = length (head xs)
     h = length xs
-    horizontal w = "+" ++ replicate w '-' ++ "+"
+    horizontal w = "+" ++ replicate (4*width) '-' ++ "+"
     vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "|" else show i ++ " |" ++ xs ++ "|"
     horizontalCoordinate width n
         | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
