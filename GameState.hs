@@ -46,8 +46,6 @@ switch :: Player -> Player
 switch Player1 = Player2
 switch Player2 = Player1
 
---------------------------- Score Update System -----------------------------------
-
 
 -- stateTest :: Test
 -- stateTest = 
