@@ -96,7 +96,7 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
     combine Unexplored _ = Unexplored
     combine (Clue _) x = Clue x
 
--------- Printing out the World ----------
+-------------------------- Printing out the World ----------------------------
 
 {- Prints out the world -}
 showBoard :: Board -> IO ()
