@@ -100,6 +100,16 @@
   (major1) == 1 && (major2) <  1 || \
   (major1) == 1 && (major2) == 1 && (minor) <= 3)
 #endif /* MIN_VERSION_pretty */
+/* package project-cis5520-0.1.0.0 */
+#ifndef VERSION_project_cis5520
+#define VERSION_project_cis5520 "0.1.0.0"
+#endif /* VERSION_project_cis5520 */
+#ifndef MIN_VERSION_project_cis5520
+#define MIN_VERSION_project_cis5520(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  1 || \
+  (major1) == 0 && (major2) == 1 && (minor) <= 0)
+#endif /* MIN_VERSION_project_cis5520 */
 /* package random-1.2.1.1 */
 #ifndef VERSION_random
 #define VERSION_random "1.2.1.1"
@@ -182,12 +192,12 @@
   (major1) == 9 && (major2) == 4 && (minor) <= 5)
 #endif /* MIN_TOOL_VERSION_runghc */
 
-#ifndef CURRENT_PACKAGE_KEY
-#define CURRENT_PACKAGE_KEY "project-cis5520-0.1.0.0-FnDQGhZRFMz4TbmINWz2wi"
-#endif /* CURRENT_packageKey */
 #ifndef CURRENT_COMPONENT_ID
-#define CURRENT_COMPONENT_ID "project-cis5520-0.1.0.0-FnDQGhZRFMz4TbmINWz2wi"
+#define CURRENT_COMPONENT_ID "project-cis5520-0.1.0.0-DBRB2OzgNQHAFbToLftFPV-project-cis5520-exe"
 #endif /* CURRENT_COMPONENT_ID */
 #ifndef CURRENT_PACKAGE_VERSION
 #define CURRENT_PACKAGE_VERSION "0.1.0.0"
 #endif /* CURRENT_PACKAGE_VERSION */
+
+#undef CURRENT_PACKAGE_KEY
+#undef CURRENT_COMPONENT_ID

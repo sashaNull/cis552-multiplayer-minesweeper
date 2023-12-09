@@ -42,12 +42,12 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
-bindir     = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/bin"
-libdir     = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/lib/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0-FnDQGhZRFMz4TbmINWz2wi"
-dynlibdir  = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/lib/aarch64-osx-ghc-9.4.5"
-datadir    = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/share/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0"
-libexecdir = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/libexec/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0"
-sysconfdir = "/Users/flankado/Desktop/UPENN/2023 Fall/CIS 5520/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/etc"
+bindir     = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/bin"
+libdir     = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/lib/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0-FnDQGhZRFMz4TbmINWz2wi"
+dynlibdir  = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/lib/aarch64-osx-ghc-9.4.5"
+datadir    = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/share/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0"
+libexecdir = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/libexec/aarch64-osx-ghc-9.4.5/project-cis5520-0.1.0.0"
+sysconfdir = "/Users/flankado/Library/Mobile Documents/com~apple~CloudDocs/Desktop/UPENN/2023 Fall/cis552-multiplayer-minesweeper/.stack-work/install/aarch64-osx/117536ce49558ec442595692c9e5f969bc0cb3b7016244271c784a687e490589/9.4.5/etc"
 
 getBinDir     = catchIO (getEnv "project_cis5520_bindir")     (\_ -> return bindir)
 getLibDir     = catchIO (getEnv "project_cis5520_libdir")     (\_ -> return libdir)
