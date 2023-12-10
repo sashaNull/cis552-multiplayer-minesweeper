@@ -1,6 +1,7 @@
 module Logic where
 
 import Control.Monad
+import Prelude
 import Control.Monad.State
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
@@ -45,9 +46,9 @@ data GameState = GS {
 
 size = 2 -- the size of each cell
 
-width = 30 -- the width of the board
+width = 5 -- the width of the board
 
-height = 30 -- the height of the board
+height = 5 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
 
@@ -112,6 +113,12 @@ countVisibleMine x = case x of
     helper = foldr g 0
     g Mine acc = acc + 1
     g _ acc = acc
+
+{-This function returns true if the winning condition is met-}
+winingCondition :: Explored -> GameState -> Bool
+winingCondition e state =
+  let s1 = score1 state in
+    let s2 = score2 state in (s1 > (width * height `div` 10) `div` 2) || (s2 > (width * height `div` 10) `div` 2)
 
 ------------------------ Generation of the Game -------------------------------
 
@@ -217,28 +224,36 @@ addBorder xs =
 playGame :: Explored -> Board -> GameState -> IO Explored
 playGame e b oldstate = do
   clearScreen
-  showBoard e
-  putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
-  putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-  putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-  input <- getLine
-  let new = explore b (parser input) e
-   in 
-    let oldcount = countVisibleMine e
-      in
-        let newcount = countVisibleMine new 
-          in if newcount > oldcount
-                then 
-                  if player oldstate == Player1 
-                    then do
-                      let newstate = execState (do updateScore1) oldstate in
-                        playGame new b newstate
-                    else do
-                      let newstate = execState (do updateScore2) oldstate in
-                        playGame new b newstate
-              else do
-                      let newstate = execState (do updatePlayer) oldstate in
-                        playGame new b newstate
+  if winingCondition e oldstate then do
+    putStrLn "Congratulations!"
+    putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
+    putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
+    putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+    return e
+    else do
+      putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
+      putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
+      putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+      showBoard e
+      putStrLn $ "Please input Coordinate to explore:"
+      input <- getLine
+      let new = explore b (parser input) e
+        in 
+        let oldcount = countVisibleMine e
+          in
+            let newcount = countVisibleMine new 
+              in if newcount > oldcount
+                    then 
+                      if player oldstate == Player1 
+                        then do
+                          let newstate = execState (do updateScore1) oldstate in
+                            playGame new b newstate
+                        else do
+                          let newstate = execState (do updateScore2) oldstate in
+                            playGame new b newstate
+                  else do
+                          let newstate = execState (do updatePlayer) oldstate in
+                            playGame new b newstate
   where
     -- This helper function helps parse the input of the players into a Location
     parser :: String -> Location
