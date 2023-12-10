@@ -1,6 +1,7 @@
 module Logic where
 
 import Control.Monad
+import Control.Monad.State
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
 import Data.Maybe (isJust)
@@ -12,17 +13,17 @@ import System.Console.ANSI
 
 ------------------- Definitions (Game State) -------------------
 
-data State a = Mine | Unexplored | Clue a deriving (Show)
+data Status a = Mine | Unexplored | Clue a deriving (Show)
 
 type Location = (Int, Int)
 
-type Board = [[State Int]]
+type Board = [[Status Int]]
 
 type ClueMatrix = [[Int]]
 
-type Explored = [[State Int]]
+type Explored = [[Status Int]]
 
-data Player = Player1 | Player2
+data Player = Player1 | Player2 deriving(Show, Eq)
 
 data ClColor = ClBlack 
   | ClRed 
@@ -40,13 +41,42 @@ data GameState = GS {
   player :: Player,
   score1 :: Int,
   score2 :: Int
-}
+} deriving(Show, Eq)
 
 size = 2 -- the size of each cell
 
 width = 30 -- the width of the board
 
 height = 30 -- the height of the board
+
+------------------------------- Scoring and GameState -----------------------------
+
+initialState :: GameState
+initialState = GS { player = Player1, score1 = 0, score2 = 0 }
+
+-- Function to update score1
+updateScore1 :: State GameState ()
+updateScore1 = modify (\state -> state { score1 = score1 state + 1 })
+
+-- Function to update score2
+updateScore2 :: State GameState ()
+updateScore2 = modify (\state -> state { score2 = score2 state + 1 })
+
+-- Function to get the current score1
+getScore1 :: State GameState Int
+getScore1 = gets score1
+
+-- Function to get the current score2
+getScore2 :: State GameState Int
+getScore2 = gets score2
+
+updatePlayer :: State GameState ()
+updatePlayer = modify (\state -> state { player = switch (player state) })
+
+-- Function to update player
+switch :: Player -> Player
+switch Player1 = Player2
+switch Player2 = Player1
 
 
 
@@ -113,7 +143,7 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
     mines = nub $ genLocs w h n g
     clueMatrix = genClueMatrix w h mines
     mineMap = genBoard w h n mines
-    combine :: State a -> a -> State a
+    combine :: Status a -> a -> Status a
     combine Mine _ = Mine
     combine Unexplored _ = Unexplored
     combine (Clue _) x = Clue x
@@ -140,7 +170,7 @@ colorCode ClPurple = 128  -- ANSI color code for purple
 colorCode ClGrey = 242    -- ANSI color code for grey
 colorCode ClDarkRed = 52  -- ANSI color code for dark red
 
-tile :: State Int -> String
+tile :: Status Int -> String
 tile Mine = showCentered size (coloredText ClRed " * ")
 tile Unexplored = showCentered size " # "
 tile (Clue 0) = showCentered size "   "
