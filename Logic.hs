@@ -209,14 +209,18 @@ addBorder xs =
         | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
         | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
+
+--------------------------------- Game Loop -------------------------------
+
+
 {-make moves until someone wins-}
 playGame :: Explored -> Board -> GameState -> IO Explored
 playGame e b oldstate = do
   clearScreen
   showBoard e
   putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
-  putStrLn $ "Player 1 Score: " ++ show (score1 oldstate)
-  putStrLn $ "Player 2 Score: " ++ show (score2 oldstate)
+  putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
+  putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
   input <- getLine
   let new = explore b (parser input) e
    in 
