@@ -14,7 +14,7 @@ import System.Console.ANSI
 
 ------------------- Definitions (Game State) -------------------
 
-data Status a = Mine | Unexplored | Clue a deriving (Show)
+data Status a = Mine | Unexplored | Clue a deriving(Show, Eq)
 
 type Location = (Int, Int)
 
@@ -46,9 +46,9 @@ data GameState = GS {
 
 size = 2 -- the size of each cell
 
-width = 5 -- the width of the board
+width = 20 -- the width of the board
 
-height = 5 -- the height of the board
+height = 20 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
 
@@ -206,11 +206,12 @@ addBorder xs =
     ++ ["   " ++ horizontal w]
     ++ zipWith vertical [0 ..] xs
     ++ ["   " ++ horizontal w]
+    ++ ["   |" ++ horizontalCoordinate (width - 1) 0 ++ "|"]
   where
     w = length (head xs)
     h = length xs
     horizontal w = "+" ++ replicate (4*width) '-' ++ "+"
-    vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "|" else show i ++ " |" ++ xs ++ "|"
+    vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "| " ++ show i else show i ++ " |" ++ xs ++ "| " ++ show i
     horizontalCoordinate width n
         | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
         | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
@@ -229,31 +230,42 @@ playGame e b oldstate = do
     putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
     putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
     putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+    putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
     return e
-    else do
-      putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
+    else if countVisibleMine e == (width * height `div` 10) then do
+      putStrLn "It's a Draw! Play again! "
       putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
       putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-      showBoard e
-      putStrLn $ "Please input Coordinate to explore:"
-      input <- getLine
-      let new = explore b (parser input) e
-        in 
-        let oldcount = countVisibleMine e
-          in
-            let newcount = countVisibleMine new 
-              in if newcount > oldcount
-                    then 
-                      if player oldstate == Player1 
-                        then do
-                          let newstate = execState (do updateScore1) oldstate in
-                            playGame new b newstate
-                        else do
-                          let newstate = execState (do updateScore2) oldstate in
-                            playGame new b newstate
-                  else do
-                          let newstate = execState (do updatePlayer) oldstate in
-                            playGame new b newstate
+      putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
+      return e
+      else do
+        putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
+        putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
+        putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+        putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
+        showBoard e
+        putStrLn "Please input Coordinate to explore:"
+        input <- getLine
+        let new = explore b (parser input) e
+          in 
+            if new == e then do
+              playGame new b oldstate
+              else do
+                let oldcount = countVisibleMine e
+                  in
+                    let newcount = countVisibleMine new 
+                      in if newcount > oldcount
+                            then 
+                              if player oldstate == Player1 
+                                then do
+                                  let newstate = execState (do updateScore1) oldstate in
+                                    playGame new b newstate
+                                else do
+                                  let newstate = execState (do updateScore2) oldstate in
+                                    playGame new b newstate
+                          else do
+                                  let newstate = execState (do updatePlayer) oldstate in
+                                    playGame new b newstate
   where
     -- This helper function helps parse the input of the players into a Location
     parser :: String -> Location
