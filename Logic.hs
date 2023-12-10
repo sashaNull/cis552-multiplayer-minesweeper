@@ -24,6 +24,18 @@ type Explored = [[State Int]]
 
 data Player = Player1 | Player2
 
+data ClColor = ClBlack 
+  | ClRed 
+  | ClGreen 
+  | ClYellow 
+  | ClBlue 
+  | ClMagenta 
+  | ClCyan 
+  | ClWhite 
+  | ClPurple 
+  | ClGrey 
+  | ClDarkRed
+
 data GameState = GS {
   player :: Player,
   score1 :: Int,
@@ -32,9 +44,9 @@ data GameState = GS {
 
 size = 2 -- the size of each cell
 
-width = 20 -- the width of the board
+width = 30 -- the width of the board
 
-height = 20 -- the height of the board
+height = 30 -- the height of the board
 
 
 
@@ -108,16 +120,9 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 
 -------------------------- Printing out the Board ----------------------------
 
-
-
-
-
-
 {-Prints out the world-}
 showBoard :: Board -> IO ()
 showBoard w = putStrLn $ showMatrixWith tile w
-
-data ClColor = ClBlack | ClRed | ClGreen | ClYellow | ClBlue | ClMagenta | ClCyan | ClWhite | ClPurple | ClGrey | ClDarkRed
 
 coloredText :: ClColor -> String -> String
 coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
