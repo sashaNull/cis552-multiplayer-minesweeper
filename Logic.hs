@@ -210,8 +210,8 @@ addBorder xs =
         | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
 {-make moves until someone wins-}
-playGame :: Explored -> Board -> IO Explored
-playGame e b = do
+playGame :: Explored -> Board -> GameState -> IO Explored
+playGame e b oldstate = do
   clearScreen
   showBoard e
   input <- getLine
@@ -220,7 +220,18 @@ playGame e b = do
     let oldcount = countVisibleMine e
       in
         let newcount = countVisibleMine new 
-          in if newcount > oldcount then return new else playGame new b
+          in if newcount > oldcount
+                then 
+                  if player oldstate == Player1 
+                    then do
+                      let newstate = execState (do updateScore1) oldstate in
+                        playGame new b newstate
+                    else do
+                      let newstate = execState (do updateScore2) oldstate in
+                        playGame new b newstate
+              else do
+                      let newstate = execState (do updatePlayer) oldstate in
+                        playGame new b newstate
   where
     -- This helper function helps parse the input of the players into a Location
     parser :: String -> Location
@@ -233,7 +244,7 @@ main = do
   g <- getStdGen
   let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
   let board = genGame width height (width * height `div` 10) g
-  playGame explored board >>= showBoard
+  playGame explored board initialState >>= showBoard
 
 -----------------------------
 -- Test Cases
