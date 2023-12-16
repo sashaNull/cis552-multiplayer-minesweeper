@@ -1,85 +1,86 @@
-module Multiplayer where
+module MultiPlayer where
 
-import BoardPrint
-import Control.Concurrent
-import Control.Exception (IOException, catch)
-import Control.Monad
-import Control.Monad.State
-import Data.List (drop, foldr, map, nub, take, transpose)
-import Data.Map ()
-import Data.Maybe
-import Helpers
-import Logic
-import Network.BSD (getHostByName, hostAddress)
 import Network.Socket
-import System.Console.ANSI
 import System.IO
+import Control.Exception
+import Control.Concurrent
+import Control.Monad (when)
+import Control.Monad.Fix (fix)
+
 import System.Random (Random (randomRs), RandomGen, getStdGen)
+import Logic
+import Helpers
 
-playGame :: Explored -> Board -> GameState -> IO Explored
-playGame e b oldstate = do
-  clearScreen
-  if winingCondition e oldstate b
-    then do
-      putStrLn "Congratulations!"
-      putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
-      putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-      putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-      putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-      return e
-    else
-      if countVisibleMine e == (width * height `div` 10)
-        then do
-          putStrLn "It's a Draw! Play again! "
-          putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-          putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-          putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-          return e
-        else do
-          putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
-          putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-          putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-          putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-          showBoard e
-          putStrLn "Please input Coordinate to explore: (for example: 0 0)"
-          input <- getLine
-          let new = explore b (parser input) e
-           in if new == e
-                then do
-                  playGame new b oldstate
-                else do
-                  let oldcount = countVisibleMine e
-                   in let newcount = countVisibleMine new
-                       in if newcount > oldcount
-                            then
-                              if player oldstate == Player1
-                                then do
-                                  let newstate = execState (do updateScore1) oldstate
-                                   in playGame new b newstate
-                                else do
-                                  let newstate = execState (do updateScore2) oldstate
-                                   in playGame new b newstate
-                            else do
-                              let newstate = execState (do updatePlayer) oldstate
-                               in playGame new b newstate
-  where
-    -- This helper function helps parse the input of the players into a Location
-    parser :: String -> Location
-    parser str = helper $ Data.List.map read $ words str
-      where
-        helper (x : y : _) = (x, y)
+main :: IO ()
+main = do
+  sock <- socket AF_INET Stream 0
+  setSocketOption sock ReuseAddr 1
+  bind sock (SockAddrInet 4242 0)
+  listen sock 2
+  playerCountVar <- newMVar 0 
+  chan <- newChan
+  _ <- forkIO $ fix $ \loop -> do
+    (_, _) <- readChan chan
+    loop
+  mainLoop sock chan playerCountVar 0
 
-{-Prints out the world-}
-showBoard :: Board -> IO ()
-showBoard w = putStrLn $ showMatrixWith tile w
+type Msg = (Int, String)
 
-createGame :: IO ()
-createGame = do
-  g <- getStdGen
-  let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
-  let board = genGame width height (width * height `div` 10) g
-  playGame explored board initialState >>= showBoard
+mainLoop :: Socket -> Chan Msg -> MVar Int -> Int -> IO ()
+mainLoop sock chan playerCountVar msgNum = do
+  conn <- accept sock
+  forkIO (runConn conn chan playerCountVar msgNum)
+  mainLoop sock chan playerCountVar $! msgNum + 1
 
------------------------------
--- Test Cases
------------------------------
+
+runConn :: (Socket, SockAddr) -> Chan Msg -> MVar Int-> Int -> IO ()
+runConn (sock, _) chan playerCountVar msgNum = do
+    hdl <- socketToHandle sock ReadWriteMode
+    let broadcastToAll msg = do
+          writeChan chan (msgNum, msg)
+          hPutStrLn hdl msg
+
+    hSetBuffering hdl NoBuffering
+
+    hPutStrLn hdl "~~~~~~~~~~~~~~~\nWelcome to Capture The Mine.\n~~~~~~~~~~~~~~~\n" 
+    hPutStrLn hdl "Please enter your name?"
+    name <- hGetLine hdl
+    broadcastToAll ("--> " ++ name ++ " entered the game.")
+
+    modifyMVar_ playerCountVar (\count -> do
+        let newCount = count + 1
+        return newCount)
+    
+    currentCount <- readMVar playerCountVar
+
+    when (currentCount == 2) (do
+      g <- getStdGen
+      let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
+      let board = genGame width height (width * height `div` 10) g
+      let boardString = showMatrixWith tile explored
+      broadcastToAll "\nAll players connected; game starting\n."
+      broadcastToAll boardString
+      )
+
+
+    commLine <- dupChan chan
+
+    -- fork off a thread for reading from the duplicated channel
+    reader <- forkIO $ fix $ \loop -> do
+        (nextNum, line) <- readChan commLine
+        when (msgNum /= nextNum) $ hPutStrLn hdl line
+        loop
+
+    handle (\(SomeException _) -> return ()) $ fix $ \loop -> do
+        line <- hGetLine hdl
+        currentCount <- readMVar playerCountVar
+        if currentCount == 1 then do hPutStrLn hdl " (waiting for one more player...)" >> loop else do
+          case line of
+              -- If an exception is caught, send a message and break the loop
+              "quit" -> hPutStrLn hdl "Bye!"
+              -- else, continue looping.
+              _      -> broadcastToAll (name ++ ": " ++ line) >> loop
+
+    killThread reader                      -- kill after the loop ends
+    broadcastToAll ("<-- " ++ name ++ " left.") -- make a final broadcast
+    hClose hdl                             -- close the handle

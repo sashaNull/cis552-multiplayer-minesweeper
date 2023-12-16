@@ -1,4 +1,4 @@
-module Single where
+module SinglePlayer where
 
 import BoardPrint
 import Control.Monad.State
