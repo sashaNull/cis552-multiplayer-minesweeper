@@ -10,6 +10,16 @@ import Helpers
 import System.Console.ANSI
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
+import Test.HUnit
+  ( Assertion,
+    Test (TestList),
+    assertFailure,
+    runTestTT,
+    (@?=),
+    (~:),
+    (~=?),
+    (~?=),
+  )
 import Test.QuickCheck
 import Prelude
 
@@ -173,10 +183,18 @@ prop_identity_swtich x = switch (switch x) === x
 instance (Arbitrary a) => Arbitrary (Status a) where
   arbitrary = oneof [pure Mine, pure Unexplored, Clue <$> arbitrary]
 
-prop_identity_explore :: Explored -> Location -> Property
-prop_identity_explore e loc = explore e (0, 0) e === e
+texplore :: Test
+texplore =
+  "explore"
+    ~: TestList
+      [ explore (matrixMaker 10 10 (Clue 0)) (0, 0) (matrixMaker 10 10 (Clue 0)) ~?= matrixMaker 10 10 (Clue 0),
+        explore
+          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine)
+          (0, 0)
+          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Unexplored)
+          ~?= replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine
+      ]
 
 logicTests :: IO ()
 logicTests = do
   quickCheck (prop_identity_swtich :: Player -> Property)
-  quickCheck (prop_identity_explore :: Explored -> Location -> Property)

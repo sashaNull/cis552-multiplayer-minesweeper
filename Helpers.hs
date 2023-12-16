@@ -111,7 +111,7 @@ prop_identity matrix = matrixMap id matrix === matrix
 prop_composition :: (Eq b, Eq c, Show c) => Fun a b -> Fun b c -> [[a]] -> Property
 prop_composition (Fun _ f) (Fun _ g) matrix = matrixMap (g . f) matrix === matrixMap g (matrixMap f matrix)
 
-main :: IO ()
-main = do
+propHelpers :: IO ()
+propHelpers = do
   quickCheck (prop_identity :: [[Int]] -> Property)
   quickCheck (prop_composition :: Fun Int Int -> Fun Int Int -> [[Int]] -> Property)
