@@ -1,76 +1,60 @@
 module Main where
 
-import Network.Socket
-import Network.BSD (getHostByName, hostAddress)
-import System.IO
 import Control.Concurrent
-import Control.Exception (catch, IOException)
+import Control.Exception (IOException, catch)
 import Control.Monad
 import Data.Maybe
-
-import Single
 import Multiplayer
-
+import Network.BSD (getHostByName, hostAddress)
+import Network.Socket
+import Single
+import System.IO
 
 main :: IO ()
 main = do
-    putStrLn $ "~~~~~~~~~~~~~~~\nWelcome to Capture The Mine.\n~~~~~~~~~~~~~~~\n" ++
-               "Type 'single' to create a game, 'join' to join an existing game or 'host' to create a new game."
-    str <- getLine
-    case str of
-     "single" -> Single.createGame
-     "host" -> hostGame >> main
+  putStrLn $
+    "~~~~~~~~~~~~~~~\nWelcome to Capture The Mine.\n~~~~~~~~~~~~~~~\n"
+      ++ "Type 'local' to create a local game, 'join' to join an existing game or 'host' to create a new game."
+  str <- getLine
+  case str of
+    "local" -> Single.createGame
+    "host" -> hostGame >> main
 
 hostGame :: IO ()
 hostGame = withSocketsDo $ do
-    -- Create a socket
-    sock <- socket AF_INET Stream 0
+  -- Create a socket
+  sock <- socket AF_INET Stream 0
 
-    -- Set socket options
-    setSocketOption sock ReuseAddr 1
+  -- Set socket options
+  setSocketOption sock ReuseAddr 1
 
-    -- Bind the socket to a specific port
-    bind sock (SockAddrInet 4242 0)
+  -- Bind the socket to a specific port
+  bind sock (SockAddrInet 4242 0)
 
-    -- Listen for incoming connections with a maximum queue length of 5
-    listen sock 2
+  -- Listen for incoming connections with a maximum queue length of 5
+  listen sock 2
 
-    -- Start communication with the server
-    handleConnections sock
-    putStrLn "Waiting for players to join..."
-
-
+  -- Start communication with the server
+  handleConnections sock
+  putStrLn "Waiting for players to join..."
 
 -- Function to handle communication with a connected client
 handleConnections :: Socket -> IO ()
 handleConnections sock = do
-    conn <- accept sock     -- accept a connection and handle it
-    runConn conn            -- run our server's logic
-    handleConnections sock           -- repeat
+  conn <- accept sock -- accept a connection and handle it
+  runConn conn -- run our server's logic
+  handleConnections sock -- repeat
 
 runConn :: (Socket, SockAddr) -> IO ()
 runConn (sock, _) = do
-    hdl <- socketToHandle sock ReadWriteMode
-    hSetBuffering hdl NoBuffering
+  hdl <- socketToHandle sock ReadWriteMode
+  hSetBuffering hdl NoBuffering
 
-    -- Redirect stdout to the handler
-    hPutStrLn hdl "Hello, world!"
+  -- Redirect stdout to the handler
+  hPutStrLn hdl "Hello, world!"
 
-    -- Send the output to the handler
-    hClose hdl
-
-
-
-
-
-
-
-
-
-
-
-
-
+  -- Send the output to the handler
+  hClose hdl
 
 --     -- Set up handles for communication
 --     hdl <- socketToHandle clientSock ReadWriteMode
@@ -127,4 +111,3 @@ runConn (sock, _) = do
 --     forever $ do
 --         msg <- hGetLine hdl
 --         putStrLn $ "Received message from server: " ++ msg
-
