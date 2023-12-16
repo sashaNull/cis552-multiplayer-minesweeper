@@ -1,17 +1,17 @@
 module Logic where
 
 import Control.Monad
-import Prelude
 import Control.Monad.State
-import Data.Maybe (isJust)
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
+import Data.Maybe (isJust)
 import Debug.Trace ()
+import Helpers
+import System.Console.ANSI
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
-import System.Console.ANSI
-
-import Helpers
+import Test.QuickCheck
+import Prelude
 
 ------------------- Definitions (Game State) -------------------
 
@@ -27,42 +27,42 @@ type Explored = [[Status Int]]
 
 data Player = Player1 | Player2 deriving (Show, Eq)
 
-data ClColor = ClBlack 
-  | ClRed 
-  | ClGreen 
-  | ClYellow 
-  | ClBlue 
-  | ClMagenta 
-  | ClCyan 
-  | ClWhite 
-  | ClPurple 
-  | ClGrey 
+data ClColor
+  = ClBlack
+  | ClRed
+  | ClGreen
+  | ClYellow
+  | ClBlue
+  | ClMagenta
+  | ClCyan
+  | ClWhite
+  | ClPurple
+  | ClGrey
   | ClDarkRed
 
-data GameState = GS {
-  player :: Player,
-  score1 :: Int,
-  score2 :: Int
-} deriving(Show, Eq)
+data GameState = GS
+  { player :: Player,
+    score1 :: Int,
+    score2 :: Int
+  }
+  deriving (Show, Eq)
 
-size = 2 -- the size of each cell
+width = 30 -- the width of the board
 
-width = 5 -- the width of the board
-
-height = 5 -- the height of the board
+height = 30 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
 
 initialState :: GameState
-initialState = GS { player = Player1, score1 = 0, score2 = 0 }
+initialState = GS {player = Player1, score1 = 0, score2 = 0}
 
 -- Function to update score1
 updateScore1 :: State GameState ()
-updateScore1 = modify (\state -> state { score1 = score1 state + 1 })
+updateScore1 = modify (\state -> state {score1 = score1 state + 1})
 
 -- Function to update score2
 updateScore2 :: State GameState ()
-updateScore2 = modify (\state -> state { score2 = score2 state + 1 })
+updateScore2 = modify (\state -> state {score2 = score2 state + 1})
 
 -- Function to get the current score1
 getScore1 :: State GameState Int
@@ -73,23 +73,24 @@ getScore2 :: State GameState Int
 getScore2 = gets score2
 
 updatePlayer :: State GameState ()
-updatePlayer = modify (\state -> state { player = switch (player state) })
+updatePlayer = modify (\state -> state {player = switch (player state)})
 
 -- Function to update player
 switch :: Player -> Player
 switch Player1 = Player2
 switch Player2 = Player1
 
-
-
 --------------------------------- Board Exploration ------------------------------
 
 {-This function handles the situation where the player wants to explore a
 location.-}
 explore :: Board -> Location -> Explored -> Explored
-explore b l@(x, y) e = case e !! x !! y of
-  Unexplored -> updateExplored b l e -- Explore if it was not explored
-  _ -> e -- don't do anything otherwise
+explore b l@(x, y) e =
+  if inBounds width height l
+    then case e !! x !! y of
+      Unexplored -> updateExplored b l e -- Explore if it was not explored
+      _ -> e -- don't do anything otherwise
+    else e
 
 {-This function will take in the initial board, a location
 where we want to explore. and an explored map to return a new
@@ -116,10 +117,10 @@ countVisibleMine x = case x of
     g _ acc = acc
 
 {-This function returns true if the winning condition is met-}
-winingCondition :: Explored -> GameState -> Bool
-winingCondition e state =
-  let s1 = score1 state in
-    let s2 = score2 state in (s1 > (width * height `div` 10) `div` 2) || (s2 > (width * height `div` 10) `div` 2)
+winingCondition :: Explored -> GameState -> Board -> Bool
+winingCondition e state b =
+  let s1 = score1 state
+   in let s2 = score2 state in (s1 > countVisibleMine b `div` 2) || (s2 > countVisibleMine b `div` 2)
 
 ------------------------ Generation of the Game -------------------------------
 
@@ -194,6 +195,9 @@ showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
     leftPad = w `div` 2
     rightPad = w - leftPad - length x
 
+showMatrixWith :: (a -> String) -> [[a]] -> String
+showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
+
 {-Adds a border around a list of strings-}
 addBorder :: [String] -> [String]
 addBorder xs =
@@ -212,8 +216,26 @@ addBorder xs =
         | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
         | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
-showMatrixWith :: (a -> String) -> [[a]] -> String
-showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
 -----------------------------
 -- Test Cases
 -----------------------------
+
+---------------- Test for Switch -------------
+instance Arbitrary Player where
+  arbitrary = oneof [pure Player1, pure Player2]
+
+-- Property: Applying matrixMap with the identity function results in the original matrix.
+prop_identity_swtich :: Player -> Property
+prop_identity_swtich x = switch (switch x) === x
+
+------------- Tests for explore -----------
+instance (Arbitrary a) => Arbitrary (Status a) where
+  arbitrary = oneof [pure Mine, pure Unexplored, Clue <$> arbitrary]
+
+prop_identity_explore :: Explored -> Location -> Property
+prop_identity_explore e loc = explore e (0, 0) e === e
+
+logicTests :: IO ()
+logicTests = do
+  quickCheck (prop_identity_swtich :: Player -> Property)
+  quickCheck (prop_identity_explore :: Explored -> Location -> Property)
