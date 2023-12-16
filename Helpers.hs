@@ -1,6 +1,7 @@
 module Helpers where
 
 import Data.List
+import Test.QuickCheck
 import Test.HUnit
   ( Assertion,
     Test (TestList),
@@ -102,4 +103,15 @@ runTests =
       treplaceMatrixIndex
     ]
 
+-- Property: Applying matrixMap with the identity function results in the original matrix.
+prop_identity :: Eq a => [[a]] -> Bool
+prop_identity matrix = matrixMap id matrix == matrix
 
+-- Property: Applying matrixMap with two functions is the same as applying them sequentially.
+prop_composition :: Eq b => Fun a b -> Fun b c -> [[a]] -> Property
+prop_composition (Fun _ f) (Fun _ g) matrix = matrixMap (g . f) matrix === matrixMap g (matrixMap f matrix)
+
+main :: IO ()
+main = do
+  quickCheck (prop_identity :: [[Int]] -> Bool)
+  quickCheck (prop_composition :: Fun Int Int -> Fun Int Int -> [[Int]] -> Property)

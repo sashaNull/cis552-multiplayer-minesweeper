@@ -9,12 +9,12 @@ import Data.Maybe (isJust)
 import Debug.Trace ()
 import Helpers
 import System.IO ()
-import System.Random (Random (randomRs), RandomGen, getStdGen)
+import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
 import System.Console.ANSI
 
 ------------------- Definitions (Game State) -------------------
 
-data Status a = Mine | Unexplored | Clue a deriving(Show, Eq)
+data Status a = Mine | Unexplored | Clue a deriving (Show, Eq)
 
 type Location = (Int, Int)
 
@@ -24,7 +24,7 @@ type ClueMatrix = [[Int]]
 
 type Explored = [[Status Int]]
 
-data Player = Player1 | Player2 deriving(Show, Eq)
+data Player = Player1 | Player2 deriving (Show, Eq)
 
 data ClColor = ClBlack 
   | ClRed 
@@ -46,9 +46,9 @@ data GameState = GS {
 
 size = 2 -- the size of each cell
 
-width = 20 -- the width of the board
+width = 5 -- the width of the board
 
-height = 20 -- the height of the board
+height = 5 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
 
@@ -275,7 +275,7 @@ playGame e b oldstate = do
 
 main :: IO ()
 main = do
-  g <- getStdGen
+  g <- newStdGen
   let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
   let board = genGame width height (width * height `div` 10) g
   playGame explored board initialState >>= showBoard
