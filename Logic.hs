@@ -10,6 +10,16 @@ import Helpers
 import System.Console.ANSI
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
+import Test.HUnit
+  ( Assertion,
+    Test (TestList),
+    assertFailure,
+    runTestTT,
+    (@?=),
+    (~:),
+    (~=?),
+    (~?=),
+  )
 import Test.QuickCheck
 import Prelude
 
@@ -157,65 +167,6 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
     combine Unexplored _ = Unexplored
     combine (Clue _) x = Clue x
 
--------------------------- Printing out the Board ----------------------------
-
-
-coloredText :: ClColor -> String -> String
-coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
-
-colorCode :: ClColor -> Int
-colorCode ClBlack = 0
-colorCode ClRed = 1
-colorCode ClGreen = 2
-colorCode ClYellow = 3
-colorCode ClBlue = 4
-colorCode ClMagenta = 5
-colorCode ClCyan = 6
-colorCode ClWhite = 7
-colorCode ClPurple = 128  -- ANSI color code for purple
-colorCode ClGrey = 242    -- ANSI color code for grey
-colorCode ClDarkRed = 52  -- ANSI color code for dark red
-
-tile :: Status Int -> String
-tile Mine = showCentered size (coloredText ClRed " * ")
-tile Unexplored = showCentered size " # "
-tile (Clue 0) = showCentered size "   "
-tile (Clue 1) = showCentered size (coloredText ClBlue " 1 ")
-tile (Clue 2) = showCentered size (coloredText ClGreen " 2 ")
-tile (Clue 3) = showCentered size (coloredText ClYellow " 3 ")
-tile (Clue 4) = showCentered size (coloredText ClPurple " 4 ")
-tile (Clue 5) = showCentered size (coloredText ClDarkRed " 5 ")
-tile (Clue 6) = showCentered size (coloredText ClCyan " 6 ")
-tile (Clue 7) = showCentered size (coloredText ClBlack " 7 ")
-tile (Clue 8) = showCentered size (coloredText ClGrey " 8 ")
-
-showCentered :: Int -> String -> String
-showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
-  where
-    leftPad = w `div` 2
-    rightPad = w - leftPad - length x
-
-showMatrixWith :: (a -> String) -> [[a]] -> String
-showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
-
-{-Adds a border around a list of strings-}
-addBorder :: [String] -> [String]
-addBorder xs =
-  ["   |" ++ horizontalCoordinate (width - 1) 0 ++ "|"]
-    ++ ["   " ++ horizontal w]
-    ++ zipWith vertical [0 ..] xs
-    ++ ["   " ++ horizontal w]
-    ++ ["   |" ++ horizontalCoordinate (width - 1) 0 ++ "|"]
-  where
-    w = length (head xs)
-    h = length xs
-    horizontal w = "+" ++ replicate (4*width) '-' ++ "+"
-    vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "| " ++ show i else show i ++ " |" ++ xs ++ "| " ++ show i
-    horizontalCoordinate width n
-        | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
-        | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
-        | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
-
 -----------------------------
 -- Test Cases
 -----------------------------
@@ -232,10 +183,18 @@ prop_identity_swtich x = switch (switch x) === x
 instance (Arbitrary a) => Arbitrary (Status a) where
   arbitrary = oneof [pure Mine, pure Unexplored, Clue <$> arbitrary]
 
-prop_identity_explore :: Explored -> Location -> Property
-prop_identity_explore e loc = explore e (0, 0) e === e
+texplore :: Test
+texplore =
+  "explore"
+    ~: TestList
+      [ explore (matrixMaker 10 10 (Clue 0)) (0, 0) (matrixMaker 10 10 (Clue 0)) ~?= matrixMaker 10 10 (Clue 0),
+        explore
+          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine)
+          (0, 0)
+          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Unexplored)
+          ~?= replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine
+      ]
 
 logicTests :: IO ()
 logicTests = do
   quickCheck (prop_identity_swtich :: Player -> Property)
-  quickCheck (prop_identity_explore :: Explored -> Location -> Property)
