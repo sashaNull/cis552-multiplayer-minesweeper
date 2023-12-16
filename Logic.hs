@@ -3,14 +3,15 @@ module Logic where
 import Control.Monad
 import Prelude
 import Control.Monad.State
+import Data.Maybe (isJust)
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
-import Data.Maybe (isJust)
 import Debug.Trace ()
-import Helpers
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen)
 import System.Console.ANSI
+
+import Helpers
 
 ------------------- Definitions (Game State) -------------------
 
@@ -157,9 +158,6 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 
 -------------------------- Printing out the Board ----------------------------
 
-{-Prints out the world-}
-showBoard :: Board -> IO ()
-showBoard w = putStrLn $ showMatrixWith tile w
 
 coloredText :: ClColor -> String -> String
 coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
@@ -216,70 +214,3 @@ addBorder xs =
         | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
         | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
         | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
-
-
---------------------------------- Game Loop -------------------------------
-
-
-{-make moves until someone wins-}
-playGame :: Explored -> Board -> GameState -> IO Explored
-playGame e b oldstate = do
-  clearScreen
-  if winingCondition e oldstate then do
-    putStrLn "Congratulations!"
-    putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
-    putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-    putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-    putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-    return e
-    else if countVisibleMine e == (width * height `div` 10) then do
-      putStrLn "It's a Draw! Play again! "
-      putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-      putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-      putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-      return e
-      else do
-        putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
-        putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-        putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-        putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
-        showBoard e
-        putStrLn "Please input Coordinate to explore:"
-        input <- getLine
-        let new = explore b (parser input) e
-          in 
-            if new == e then do
-              playGame new b oldstate
-              else do
-                let oldcount = countVisibleMine e
-                  in
-                    let newcount = countVisibleMine new 
-                      in if newcount > oldcount
-                            then 
-                              if player oldstate == Player1 
-                                then do
-                                  let newstate = execState (do updateScore1) oldstate in
-                                    playGame new b newstate
-                                else do
-                                  let newstate = execState (do updateScore2) oldstate in
-                                    playGame new b newstate
-                          else do
-                                  let newstate = execState (do updatePlayer) oldstate in
-                                    playGame new b newstate
-  where
-    -- This helper function helps parse the input of the players into a Location
-    parser :: String -> Location
-    parser str = helper $ Data.List.map read $ words str
-      where
-        helper (x : y : _) = (x, y)
-
-main :: IO ()
-main = do
-  g <- getStdGen
-  let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
-  let board = genGame width height (width * height `div` 10) g
-  playGame explored board initialState >>= showBoard
-
------------------------------
--- Test Cases
------------------------------
