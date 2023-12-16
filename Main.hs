@@ -55,76 +55,44 @@ runConn (sock, _) = do
 
     -- Redirect stdout to the handler
     hPutStrLn hdl "Hello, world!"
+    setupGameThreads hdl True
 
     -- Send the output to the handler
     hClose hdl
 
+-- Thread that writes stdin input to the shared channel
+getUserInput :: Chan (InputSource, Message) -> IO ()
+getUserInput chan = do
+    str <- getLine
+    writeChan chan (Stdin, str)
+    getUserInput chan
 
+-- Thread that writes network messages to the shared channel
+getNetworkMsg :: Handle -> Chan (InputSource, Message) -> IO ()
+getNetworkMsg handle chan = do
+    isHandleClosed <- hIsEOF handle
+    if isHandleClosed
+    then
+        writeChan chan (Network, "exit")
+    else do
+        msg <- hGetLine handle
+        writeChan chan (Network, msg)
+        getNetworkMsg handle chan
 
+-- Forks a game thread and returns an MVar that gets filled when the thread exits
+forkGameThread :: Handle -> Chan (InputSource, Message) -> ServerFlag -> IO (MVar ())
+forkGameThread handle chan isServer = do
+    mv <- newEmptyMVar
+    _  <- forkFinally (Multiplayer.createGame handle chan isServer) (\_ -> putMVar mv ())
+    return mv
 
-
-
-
-
-
-
-
-
-
-
---     -- Set up handles for communication
---     hdl <- socketToHandle clientSock ReadWriteMode
-
---     -- Example: Send a welcome message to the client
---     hPutStrLn hdl "Welcome to the game! You are now connected."
-
---     forever $ do
---         msg <- hGetLine hdl
---         putStrLn $ "Received message from client: " ++ msg
-
---         -- Example: Send a response back to the client
---         hPutStrLn hdl "Message received successfully!"
-
---     -- Close the handles and the socket when the client disconnects
---     hClose hdl
---     close clientSock
-
--- -- Function to join an existing game by connecting to a host
--- joinGame :: IO ()
--- joinGame = withSocketsDo $ do
---     putStrLn "Enter the host's IP address:"
---     hostAddressStr <- getLine
-
---     -- Resolve the host's IP address
---     addrInfos <- getAddrInfo Nothing (Just hostAddressStr) (Just "4242")
-
---     -- Connect to the first available address
---     let serverAddr = addrAddress (head addrInfos)
-
---     -- Create a socket
---     sock <- socket (addrFamily (head addrInfos)) Stream defaultProtocol
-
---     -- Connect to the server
---     connect sock serverAddr
-
---     putStrLn "Connected to the game! You are now a player."
-
---     -- TODO: Implement game logic or further communication with the host
-
---     -- Start communication with the server
---     communicateWithServer sock
-
---     -- Close the socket when done
---     close sock
-
--- communicateWithServer :: Socket -> IO ()
--- communicateWithServer sock = do
---     hdl <- socketToHandle sock ReadWriteMode
---     -- Example: Send a message to the server
---     hPutStrLn hdl "Hello, server! I am a player."
-
---     -- Receive and print messages from the server in a loop
---     forever $ do
---         msg <- hGetLine hdl
---         putStrLn $ "Received message from server: " ++ msg
-
+setupGameThreads :: Handle -> ServerFlag -> IO ()
+setupGameThreads handle isServer = do
+    chan   <- newChan
+    -- Forks three threads: 1 reads from stdin, 2 reads network msgs, 3 plays the game
+    tid1   <- forkIO (getUserInput chan)
+    tid2   <- forkIO (getNetworkMsg handle chan)
+    mvGame <- forkGameThread handle chan isServer
+    takeMVar mvGame -- Blocks until the game state thread returns
+    killThread tid1
+    killThread tid2

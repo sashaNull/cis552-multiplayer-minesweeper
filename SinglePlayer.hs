@@ -1,4 +1,4 @@
-module Single where
+module SinglePlayer where
 
 import System.IO ()
 import System.Console.ANSI

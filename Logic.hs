@@ -194,9 +194,6 @@ showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
     leftPad = w `div` 2
     rightPad = w - leftPad - length x
 
-showMatrixWith :: (a -> String) -> [[a]] -> String
-showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
-
 {-Adds a border around a list of strings-}
 addBorder :: [String] -> [String]
 addBorder xs =
@@ -215,6 +212,8 @@ addBorder xs =
         | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
         | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
+showMatrixWith :: (a -> String) -> [[a]] -> String
+showMatrixWith f = unlines . addBorder . Data.List.map concat . matrixMap f . transpose
 -----------------------------
 -- Test Cases
 -----------------------------
