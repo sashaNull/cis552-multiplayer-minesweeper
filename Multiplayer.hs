@@ -1,5 +1,6 @@
 module Multiplayer where
 
+import BoardPrint
 import Control.Concurrent
 import Control.Exception (IOException, catch)
 import Control.Monad

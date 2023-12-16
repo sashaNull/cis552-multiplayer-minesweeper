@@ -1,5 +1,6 @@
 module Single where
 
+import BoardPrint
 import Control.Monad.State
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
@@ -36,7 +37,7 @@ playGame e b oldstate = do
           putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
           putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
           showBoard e
-          putStrLn "Please input Coordinate to explore: (for example: 0 0)"
+          putStrLn "Please input Coordinate to explore, horizontal followed by vertical axis: (for example: 0 0)"
           input <- getLine
           let temp = doParse locationParser input
            in case temp of
