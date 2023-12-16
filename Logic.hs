@@ -86,9 +86,12 @@ switch Player2 = Player1
 {-This function handles the situation where the player wants to explore a
 location.-}
 explore :: Board -> Location -> Explored -> Explored
-explore b l@(x, y) e = case e !! x !! y of
-  Unexplored -> updateExplored b l e -- Explore if it was not explored
-  _ -> e -- don't do anything otherwise
+explore b l@(x, y) e =
+  if inBounds width height l
+    then case e !! x !! y of
+      Unexplored -> updateExplored b l e -- Explore if it was not explored
+      _ -> e -- don't do anything otherwise
+    else e
 
 {-This function will take in the initial board, a location
 where we want to explore. and an explored map to return a new
