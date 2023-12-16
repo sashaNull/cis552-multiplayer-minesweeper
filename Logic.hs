@@ -3,14 +3,15 @@ module Logic where
 import Control.Monad
 import Prelude
 import Control.Monad.State
+import Data.Maybe (isJust)
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
-import Data.Maybe (isJust)
 import Debug.Trace ()
-import Helpers
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
 import System.Console.ANSI
+
+import Helpers
 
 ------------------- Definitions (Game State) -------------------
 
@@ -157,9 +158,6 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 
 -------------------------- Printing out the Board ----------------------------
 
-{-Prints out the world-}
-showBoard :: Board -> IO ()
-showBoard w = putStrLn $ showMatrixWith tile w
 
 coloredText :: ClColor -> String -> String
 coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
@@ -275,7 +273,7 @@ playGame e b oldstate = do
 
 main :: IO ()
 main = do
-  g <- newStdGen
+  g <- getStdGen
   let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
   let board = genGame width height (width * height `div` 10) g
   playGame explored board initialState >>= showBoard

@@ -42,12 +42,12 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
-bindir     = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\bin"
-libdir     = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\lib\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0-IGaoVoHJlbELY7Z5ssmou1"
-dynlibdir  = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\lib\\x86_64-windows-ghc-9.4.5"
-datadir    = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\share\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0"
-libexecdir = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\libexec\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0"
-sysconfdir = "D:\\CODING\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\etc"
+bindir     = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\bin"
+libdir     = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\lib\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0-IGaoVoHJlbELY7Z5ssmou1"
+dynlibdir  = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\lib\\x86_64-windows-ghc-9.4.5"
+datadir    = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\share\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0"
+libexecdir = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\libexec\\x86_64-windows-ghc-9.4.5\\project-cis5520-0.1.0.0"
+sysconfdir = "D:\\Desktop\\PROJECT2\\cis552-multiplayer-minesweeper\\.stack-work\\install\\61edb194\\etc"
 
 getBinDir     = catchIO (getEnv "project_cis5520_bindir")     (\_ -> return bindir)
 getLibDir     = catchIO (getEnv "project_cis5520_libdir")     (\_ -> return libdir)
