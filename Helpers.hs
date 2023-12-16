@@ -1,7 +1,6 @@
 module Helpers where
 
 import Data.List
-import Test.QuickCheck
 import Test.HUnit
   ( Assertion,
     Test (TestList),
@@ -12,6 +11,7 @@ import Test.HUnit
     (~=?),
     (~?=),
   )
+import Test.QuickCheck
 
 {-This function returns the all the surrounding location of a location-}
 surrounding :: Int -> Int -> (Int, Int) -> [(Int, Int)]

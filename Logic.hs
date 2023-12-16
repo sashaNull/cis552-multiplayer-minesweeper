@@ -1,17 +1,16 @@
 module Logic where
 
 import Control.Monad
-import Prelude
 import Control.Monad.State
-import Data.Maybe (isJust)
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
+import Data.Maybe (isJust)
 import Debug.Trace ()
+import Helpers
+import System.Console.ANSI
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
-import System.Console.ANSI
-
-import Helpers
+import Prelude
 
 ------------------- Definitions (Game State) -------------------
 
@@ -27,23 +26,25 @@ type Explored = [[Status Int]]
 
 data Player = Player1 | Player2 deriving (Show, Eq)
 
-data ClColor = ClBlack 
-  | ClRed 
-  | ClGreen 
-  | ClYellow 
-  | ClBlue 
-  | ClMagenta 
-  | ClCyan 
-  | ClWhite 
-  | ClPurple 
-  | ClGrey 
+data ClColor
+  = ClBlack
+  | ClRed
+  | ClGreen
+  | ClYellow
+  | ClBlue
+  | ClMagenta
+  | ClCyan
+  | ClWhite
+  | ClPurple
+  | ClGrey
   | ClDarkRed
 
-data GameState = GS {
-  player :: Player,
-  score1 :: Int,
-  score2 :: Int
-} deriving(Show, Eq)
+data GameState = GS
+  { player :: Player,
+    score1 :: Int,
+    score2 :: Int
+  }
+  deriving (Show, Eq)
 
 size = 2 -- the size of each cell
 
@@ -54,15 +55,15 @@ height = 10 -- the height of the board
 ------------------------------- Scoring and GameState -----------------------------
 
 initialState :: GameState
-initialState = GS { player = Player1, score1 = 0, score2 = 0 }
+initialState = GS {player = Player1, score1 = 0, score2 = 0}
 
 -- Function to update score1
 updateScore1 :: State GameState ()
-updateScore1 = modify (\state -> state { score1 = score1 state + 1 })
+updateScore1 = modify (\state -> state {score1 = score1 state + 1})
 
 -- Function to update score2
 updateScore2 :: State GameState ()
-updateScore2 = modify (\state -> state { score2 = score2 state + 1 })
+updateScore2 = modify (\state -> state {score2 = score2 state + 1})
 
 -- Function to get the current score1
 getScore1 :: State GameState Int
@@ -73,14 +74,12 @@ getScore2 :: State GameState Int
 getScore2 = gets score2
 
 updatePlayer :: State GameState ()
-updatePlayer = modify (\state -> state { player = switch (player state) })
+updatePlayer = modify (\state -> state {player = switch (player state)})
 
 -- Function to update player
 switch :: Player -> Player
 switch Player1 = Player2
 switch Player2 = Player1
-
-
 
 --------------------------------- Board Exploration ------------------------------
 
@@ -118,8 +117,8 @@ countVisibleMine x = case x of
 {-This function returns true if the winning condition is met-}
 winingCondition :: Explored -> GameState -> Board -> Bool
 winingCondition e state b =
-  let s1 = score1 state in
-    let s2 = score2 state in (s1 > countVisibleMine b `div` 2) || (s2 > countVisibleMine b `div` 2)
+  let s1 = score1 state
+   in let s2 = score2 state in (s1 > countVisibleMine b `div` 2) || (s2 > countVisibleMine b `div` 2)
 
 ------------------------ Generation of the Game -------------------------------
 
@@ -158,7 +157,6 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 
 -------------------------- Printing out the Board ----------------------------
 
-
 coloredText :: ClColor -> String -> String
 coloredText c text = "\x1b[38;5;" ++ show (colorCode c) ++ "m" ++ text ++ "\x1b[0m"
 
@@ -171,9 +169,9 @@ colorCode ClBlue = 4
 colorCode ClMagenta = 5
 colorCode ClCyan = 6
 colorCode ClWhite = 7
-colorCode ClPurple = 128  -- ANSI color code for purple
-colorCode ClGrey = 242    -- ANSI color code for grey
-colorCode ClDarkRed = 52  -- ANSI color code for dark red
+colorCode ClPurple = 128 -- ANSI color code for purple
+colorCode ClGrey = 242 -- ANSI color code for grey
+colorCode ClDarkRed = 52 -- ANSI color code for dark red
 
 tile :: Status Int -> String
 tile Mine = showCentered size (coloredText ClRed " * ")
@@ -208,12 +206,12 @@ addBorder xs =
   where
     w = length (head xs)
     h = length xs
-    horizontal w = "+" ++ replicate (4*width) '-' ++ "+"
+    horizontal w = "+" ++ replicate (4 * width) '-' ++ "+"
     vertical i xs = if i < 10 then show i ++ "  |" ++ xs ++ "| " ++ show i else show i ++ " |" ++ xs ++ "| " ++ show i
     horizontalCoordinate width n
-        | n == width  = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
-        | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
-        | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
+      | n == width = if n < 10 then showCentered size (" " ++ show n ++ " ") else showCentered size (show n ++ " ")
+      | n < 10 = showCentered size (" " ++ show n ++ " ") ++ horizontalCoordinate width (n + 1)
+      | otherwise = showCentered size (show n ++ " ") ++ horizontalCoordinate width (n + 1)
 
 -----------------------------
 -- Test Cases
