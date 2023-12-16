@@ -10,6 +10,7 @@ import Helpers
 import System.Console.ANSI
 import System.IO ()
 import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
+import Test.QuickCheck
 import Prelude
 
 ------------------- Definitions (Game State) -------------------
@@ -159,3 +160,23 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
 -----------------------------
 -- Test Cases
 -----------------------------
+
+---------------- Test for Switch -------------
+instance Arbitrary Player where
+  arbitrary = oneof [pure Player1, pure Player2]
+
+-- Property: Applying matrixMap with the identity function results in the original matrix.
+prop_identity_swtich :: Player -> Property
+prop_identity_swtich x = switch (switch x) === x
+
+------------- Tests for explore -----------
+instance (Arbitrary a) => Arbitrary (Status a) where
+  arbitrary = oneof [pure Mine, pure Unexplored, Clue <$> arbitrary]
+
+prop_identity_explore :: Explored -> Location -> Property
+prop_identity_explore e loc = explore e (0, 0) e === e
+
+logicTests :: IO ()
+logicTests = do
+  quickCheck (prop_identity_swtich :: Player -> Property)
+  quickCheck (prop_identity_explore :: Explored -> Location -> Property)

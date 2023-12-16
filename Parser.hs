@@ -4,6 +4,7 @@ import Control.Applicative
 import Control.Monad (guard)
 import Data.Char (isAlpha, isDigit, ord)
 import Logic
+import Test.QuickCheck
 import Text.Read (readMaybe)
 import Prelude hiding (filter)
 
