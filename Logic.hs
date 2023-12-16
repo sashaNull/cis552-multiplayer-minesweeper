@@ -47,9 +47,9 @@ data GameState = GS {
 
 size = 2 -- the size of each cell
 
-width = 5 -- the width of the board
+width = 10 -- the width of the board
 
-height = 5 -- the height of the board
+height = 10 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
 
@@ -116,10 +116,10 @@ countVisibleMine x = case x of
     g _ acc = acc
 
 {-This function returns true if the winning condition is met-}
-winingCondition :: Explored -> GameState -> Bool
-winingCondition e state =
+winingCondition :: Explored -> GameState -> Board -> Bool
+winingCondition e state b =
   let s1 = score1 state in
-    let s2 = score2 state in (s1 > (width * height `div` 10) `div` 2) || (s2 > (width * height `div` 10) `div` 2)
+    let s2 = score2 state in (s1 > countVisibleMine b `div` 2) || (s2 > countVisibleMine b `div` 2)
 
 ------------------------ Generation of the Game -------------------------------
 

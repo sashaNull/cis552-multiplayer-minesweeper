@@ -21,7 +21,7 @@ import Logic
 playGame :: Explored -> Board -> GameState -> IO Explored
 playGame e b oldstate = do
   clearScreen
-  if winingCondition e oldstate then do
+  if winingCondition e oldstate b then do
     putStrLn "Congratulations!"
     putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
     putStrLn $ "Player1 Score: " ++ show (score1 oldstate)

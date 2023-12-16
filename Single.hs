@@ -1,8 +1,9 @@
 module Single where
 
 import System.IO ()
+import Prelude
 import System.Console.ANSI
-import System.Random (Random (randomRs), RandomGen, getStdGen)
+import System.Random (Random (randomRs), RandomGen, getStdGen, newStdGen)
 import Data.List (drop, foldr, map, nub, take, transpose)
 import Data.Map ()
 import Helpers
@@ -14,24 +15,24 @@ import Logic
 playGame :: Explored -> Board -> GameState -> IO Explored
 playGame e b oldstate = do
   clearScreen
-  if winingCondition e oldstate then do
+  if winingCondition e oldstate b then do
     putStrLn "Congratulations!"
     putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
     putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
     putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-    putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
+    putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
     return e
-    else if countVisibleMine e == (width * height `div` 10) then do
+    else if countVisibleMine e == countVisibleMine b then do
       putStrLn "It's a Draw! Play again! "
       putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
       putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-      putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
+      putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
       return e
       else do
         putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
         putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
         putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
-        putStrLn $ "Nummber of Remaining Mines: " ++ show ((width * height `div` 10) - countVisibleMine e)
+        putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
         showBoard e
         putStrLn "Please input Coordinate to explore:"
         input <- getLine
@@ -68,7 +69,7 @@ showBoard w = putStrLn $ showMatrixWith tile w
 
 createGame :: IO ()
 createGame = do
-  g <- getStdGen
+  g <- newStdGen
   let explored = Helpers.matrixMaker width height Unexplored -- nothing is explored
   let board = genGame width height (width * height `div` 10) g
   playGame explored board initialState >>= showBoard
