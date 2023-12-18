@@ -19,22 +19,22 @@ playGame e b oldstate = do
     then do
       putStrLn "Congratulations!"
       putStrLn $ "You Win! " ++ show (player oldstate) ++ "! "
-      putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-      putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+      putStrLn $ "Player 1 Score: " ++ show (score1 oldstate)
+      putStrLn $ "Player 2 Score: " ++ show (score2 oldstate)
       putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
       return e
     else
       if countVisibleMine e == countVisibleMine b
         then do
           putStrLn "It's a Draw! Play again! "
-          putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-          putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+          putStrLn $ "Player 1 Score: " ++ show (score1 oldstate)
+          putStrLn $ "Player 2 Score: " ++ show (score2 oldstate)
           putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
           return e
         else do
           putStrLn $ "It is now " ++ show (player oldstate) ++ "'s turn."
-          putStrLn $ "Player1 Score: " ++ show (score1 oldstate)
-          putStrLn $ "Player2 Score: " ++ show (score2 oldstate)
+          putStrLn $ "Player 1 Score: " ++ show (score1 oldstate)
+          putStrLn $ "Player 2 Score: " ++ show (score2 oldstate)
           putStrLn $ "Nummber of Remaining Mines: " ++ show (countVisibleMine b - countVisibleMine e)
           showBoard e
           putStrLn "Please input Coordinate to explore, horizontal followed by vertical axis: (for example: 0 0)"

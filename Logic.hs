@@ -35,7 +35,7 @@ type ClueMatrix = [[Int]]
 
 type Explored = [[Status Int]]
 
-data Player = Player1 | Player2 deriving (Show, Eq)
+data Player = Player1 | Player2 
 
 data ClColor
   = ClBlack
@@ -62,6 +62,7 @@ width = 30 -- the width of the board
 height = 30 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
+
 
 initialState :: GameState
 initialState = GS {player = Player1, score1 = 0, score2 = 0}
@@ -90,6 +91,15 @@ switch :: Player -> Player
 switch Player1 = Player2
 switch Player2 = Player1
 
+instance Show Player where
+    show Player1 = "Player 1"
+    show Player2 = "Player 2"
+
+-- Custom Eq instance
+instance Eq Player where
+    Player1 == Player1 = True
+    Player2 == Player2 = True
+    _ == _             = False
 --------------------------------- Board Exploration ------------------------------
 
 {-This function handles the situation where the player wants to explore a
