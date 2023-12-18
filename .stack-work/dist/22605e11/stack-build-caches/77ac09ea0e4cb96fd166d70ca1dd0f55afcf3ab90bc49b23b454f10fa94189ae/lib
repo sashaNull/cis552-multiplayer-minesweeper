@@ -3,4 +3,16 @@ D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\ChangeLog.md:
 D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\README.md:
   hash: 7ef4b1eca8c41360f67bf239dbd7e15f1fd23c34495f4271fc8e76f1ac2c91b5
 D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\project-cis5520.cabal:
-  hash: 69c5075292ac5a387b0a8f11372d99e4aedc7406101bd3880c5de62469accecf
+  hash: 1c562876cc09efbca610df13a1d830991f6eec20d33a33bc7e3cb4a18fda3b2d
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\BoardPrint.hs:
+  hash: 48def1eddc7807b8bbfc348117692141d4be4664421faab0fcb3cd3cf5627293
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\Helpers.hs:
+  hash: e1d71dbe5a44006b3bf600539c4305d4892e036ab2cdc0a0373abe6a73caa97b
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\Logic.hs:
+  hash: 1c9844c7402aec3d21b7f2e49e683b958fb6d4e5c22da6ad8ae1f7f46ba91761
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\MultiPlayer.hs:
+  hash: 21f4aa2564a2f20a7de8e57d109b302d85f8bbdebbe670bf698e0c587941b74f
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\Parser.hs:
+  hash: d2ecc1a9257d2b6c14ee564ee53de82a4c4c16148103cc17eeec5f119b728abd
+D:\Desktop\PROJECT2\cis552-multiplayer-minesweeper\src\SinglePlayer.hs:
+  hash: 91fac038fd9e6bb10a4e1d2ea00a6454c5b9fc43094c4d3997436e7b947ae2fb
