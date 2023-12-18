@@ -31,17 +31,6 @@ updateStateMVar stateVar updateFunction = do
   let newState = execState (do updateFunction) currentState
   putMVar stateVar newState
 
-sendMatchMessage :: Int -> Chan Msg -> MVar Explored -> MVar Board -> MVar GameState -> IO ()
-sendMatchMessage msgNum chan exploredVar boardVar stateVar = do
-    currentExplored <- readMVar exploredVar
-    currentBoard <- readMVar boardVar
-    currentState <- readMVar stateVar
-    writeChan chan (msgNum, "\n\nIt is now " ++ show (player currentState) ++ "'s turn.")
-    writeChan chan (msgNum, "Player 1 Score: " ++ show (score1 currentState))
-    writeChan chan (msgNum, "Player 2 Score: " ++ show (score2 currentState))
-    writeChan chan (msgNum, "Nummber of Remaining Mines: " ++ show (countVisibleMine currentBoard - countVisibleMine currentExplored))
-    writeChan chan (msgNum, showMatrixWith tile currentExplored)
-
 printMatchMessage :: Int -> Chan Msg -> Handle -> MVar Explored -> MVar Board -> MVar GameState -> IO ()
 printMatchMessage msgNum chan hdl exploredVar boardVar stateVar = do
     let broadcastToAll msg = do
