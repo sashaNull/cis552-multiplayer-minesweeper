@@ -35,7 +35,7 @@ type ClueMatrix = [[Int]]
 
 type Explored = [[Status Int]]
 
-data Player = Player1 | Player2 
+data Player = Player1 | Player2
 
 data ClColor
   = ClBlack
@@ -57,12 +57,13 @@ data GameState = GS
   }
   deriving (Show, Eq)
 
-width = 30 -- the width of the board
+width :: Int
+width = 10 -- the width of the board
 
-height = 30 -- the height of the board
+height :: Int
+height = 10 -- the height of the board
 
 ------------------------------- Scoring and GameState -----------------------------
-
 
 initialState :: GameState
 initialState = GS {player = Player1, score1 = 0, score2 = 0}
@@ -92,14 +93,17 @@ switch Player1 = Player2
 switch Player2 = Player1
 
 instance Show Player where
-    show Player1 = "Player 1"
-    show Player2 = "Player 2"
+  show :: Player -> String
+  show Player1 = "Player 1"
+  show Player2 = "Player 2"
 
 -- Custom Eq instance
 instance Eq Player where
-    Player1 == Player1 = True
-    Player2 == Player2 = True
-    _ == _             = False
+  (==) :: Player -> Player -> Bool
+  Player1 == Player1 = True
+  Player2 == Player2 = True
+  _ == _ = False
+
 --------------------------------- Board Exploration ------------------------------
 
 {-This function handles the situation where the player wants to explore a
@@ -176,35 +180,3 @@ genGame w h n g = [zipWith combine ms cs | (ms, cs) <- zip mineMap clueMatrix]
     combine Mine _ = Mine
     combine Unexplored _ = Unexplored
     combine (Clue _) x = Clue x
-
------------------------------
--- Test Cases
------------------------------
-
----------------- Test for Switch -------------
-instance Arbitrary Player where
-  arbitrary = oneof [pure Player1, pure Player2]
-
--- Property: Applying matrixMap with the identity function results in the original matrix.
-prop_identity_swtich :: Player -> Property
-prop_identity_swtich x = switch (switch x) === x
-
-------------- Tests for explore -----------
-instance (Arbitrary a) => Arbitrary (Status a) where
-  arbitrary = oneof [pure Mine, pure Unexplored, Clue <$> arbitrary]
-
-texplore :: Test
-texplore =
-  "explore"
-    ~: TestList
-      [ explore (matrixMaker 10 10 (Clue 0)) (0, 0) (matrixMaker 10 10 (Clue 0)) ~?= matrixMaker 10 10 (Clue 0),
-        explore
-          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine)
-          (0, 0)
-          (replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Unexplored)
-          ~?= replaceMatrixIndex (0, 0) (matrixMaker 10 10 (Clue 0)) Mine
-      ]
-
-logicTests :: IO ()
-logicTests = do
-  quickCheck (prop_identity_swtich :: Player -> Property)

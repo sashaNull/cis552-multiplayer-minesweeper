@@ -36,6 +36,7 @@ tile (Clue 5) = showCentered 2 (coloredText ClDarkRed " 5 ")
 tile (Clue 6) = showCentered 2 (coloredText ClCyan " 6 ")
 tile (Clue 7) = showCentered 2 (coloredText ClBlack " 7 ")
 tile (Clue 8) = showCentered 2 (coloredText ClGrey " 8 ")
+tile _ = error "This is impossible"
 
 showCentered :: Int -> String -> String
 showCentered w x = replicate leftPad ' ' ++ x ++ replicate rightPad ' '
