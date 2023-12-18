@@ -162,7 +162,8 @@ runConn (sock, _) chan playerCountVar gameStatusVar conditionVar exploredVar boa
     if currentCount == 1 || (getPlayer userID /= player currentState) then do
       if currentCount == 1 then do
         hPutStrLn hdl "\n(Waiting for the other player to join...)"
-        takeMVar conditionVar >> loop
+        takeMVar conditionVar 
+        >> loop
       else
         when (getPlayer userID /= player currentState) (do 
           hPutStrLn hdl "\n(Waiting for the other player to make the move...)"
@@ -215,7 +216,10 @@ runConn (sock, _) chan playerCountVar gameStatusVar conditionVar exploredVar boa
                           else do 
                             updateStateMVar stateVar updatePlayer
                             printMatchMessage msgNum chan hdl exploredVar boardVar stateVar  
-                            putMVar conditionVar () >> loop
+                            threadDelay 500000
+                            putMVar conditionVar () 
+                            threadDelay 500000
+                            >> loop
 
   killThread reader -- kill after the loop ends
   broadcastToAll ("<-- Player" ++ show userID ++ " left.") -- make a final broadcast
