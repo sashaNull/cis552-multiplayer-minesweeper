@@ -57,15 +57,6 @@ treplaceMatrixIndex =
         replaceMatrixIndex (1, 3) (matrixMaker 3 3 1) 0 ~?= [[1, 1, 1], [1, 1, 1, 0], [1, 1, 1]]
       ]
 
-runTestsHelper :: Test
-runTestsHelper =
-  TestList
-    [ tsurrounding,
-      tinBounds,
-      tmatrixMaker,
-      treplaceMatrixIndex
-    ]
-
 -- Property: Applying matrixMap with the identity function results in the original matrix.
 prop_identity :: (Eq a, Show a) => [[a]] -> Property
 prop_identity matrix = matrixMap id matrix === matrix
@@ -137,9 +128,34 @@ logicTests = do
   putStrLn "Property tests for countVisibleMine and genGame"
   quickCheck (prop_count_allmines :: StdGen -> Int -> Int -> Property)
 
+--------------------------- Tests for Parsers ------------------------
+tlocationParser :: Test
+tlocationParser =
+  "LocationParser"
+    ~: TestList
+      [ doParse locationParser "" ~?= Nothing,
+        doParse locationParser "12" ~?= Nothing,
+        doParse locationParser "12  " ~?= Nothing,
+        doParse locationParser "12 12" ~?= Just ((12, 12), ""),
+        doParse locationParser "1 2 3 4" ~?= Just ((1, 2), ""),
+        doParse locationParser "1234 345 sdfgfc" ~?= Just ((1234, 345), ""),
+        doParse locationParser "s 123 456" ~?= Nothing
+      ]
+
+runTests :: Test
+runTests =
+  TestList
+    [ tsurrounding,
+      tinBounds,
+      tmatrixMaker,
+      treplaceMatrixIndex,
+      texplore,
+      tlocationParser
+    ]
+
 main :: IO ()
 main = do
   putStrLn "Unit Tests for Helper Functions"
-  runTestTT runTestsHelper
+  runTestTT runTests
   propHelpers
   logicTests
