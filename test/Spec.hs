@@ -137,8 +137,6 @@ logicTests = do
   putStrLn "Property tests for countVisibleMine and genGame"
   quickCheck (prop_count_allmines :: StdGen -> Int -> Int -> Property)
 
---   quickCheck (prop_count_allmines :: Int -> Int -> Property)
-
 main :: IO ()
 main = do
   putStrLn "Unit Tests for Helper Functions"
